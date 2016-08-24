@@ -1,0 +1,87 @@
+# ----------------- Init Section -----------------
+units           real
+atom_style      full
+neigh_modify    delay 0 every 1
+pair_style      lj/cut/coul/long 12.0
+pair_modify     mix arithmetic shift yes
+special_bonds   lj/coul 0.0 0.0 1.0
+kspace_style    pppm 1.0e-6
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  harmonic
+improper_style  cvff
+
+# ----------------- Atom Definition Section -----------------
+read_data "data.infrared"
+
+# ----------------- Settings Section -----------------
+pair_coeff 1 1 0.09340 3.74
+pair_coeff 2 2 0.09511 3.47
+pair_coeff 3 3 0.09511 3.47
+pair_coeff 4 4 0.01520 2.85
+pair_coeff 5 5 1.39104 2.98
+pair_coeff 6 6 0.14010 3.11
+pair_coeff 7 7 0.00083 2.70
+
+bond_coeff 1 351.487 1.44
+bond_coeff 2 540.360 1.27
+bond_coeff 3 480.321 1.365
+bond_coeff 4 480.321 1.365
+bond_coeff 5 363.658 0.95
+
+angle_coeff 1  34.7035 120
+angle_coeff 2  54.5309 114
+angle_coeff 3  90.0601 120
+angle_coeff 4  37.0246 120
+angle_coeff 5  90.0601 120
+angle_coeff 6  37.0246 120
+angle_coeff 7 135.0901 132
+
+dihedral_coeff 1 3.0021 -1 2
+dihedral_coeff 2 3.0021 -1 2
+dihedral_coeff 3 3.0021 -1 2
+dihedral_coeff 4 3.0021 -1 2
+dihedral_coeff 5 3.0021 -1 2
+dihedral_coeff 6 3.0021 -1 2
+dihedral_coeff 7 3.0021 -1 2
+dihedral_coeff 8 2.5017 -1 2
+
+improper_coeff 1 10.0095 -1 2
+improper_coeff 2  0.3702 -1 2
+improper_coeff 3 10.0076 -1 2
+
+timestep           0.5
+thermo             200
+
+# ----------------- Run Section -----------------
+#equilibration
+run                0
+velocity           all create 300 38564
+fix                1 all nvt temp 300 300 100.0
+run                2000000
+reset_timestep     0
+
+#calculate dipole moment vector
+#WARNING: This definition of the dipole moment is ONLY valid when the system has 0 net charge, so you should verify that before use.
+compute            1 all property/atom q xu yu zu
+variable           dipolex atom c_1[1]*c_1[2]
+variable           dipoley atom c_1[1]*c_1[3]
+variable           dipolez atom c_1[1]*c_1[4]
+compute            2 all reduce sum v_dipolex
+compute            3 all reduce sum v_dipoley
+compute            4 all reduce sum v_dipolez
+variable           totaldipolex equal c_2
+variable           totaldipoley equal c_3
+variable           totaldipolez equal c_4
+variable           mytime equal step*dt
+fix                printdipole all ave/time 1 1 2 v_mytime v_totaldipolex v_totaldipoley v_totaldipolez file dipole.txt mode scalar format %.10f
+#Note that printing every 1 fs, as I do here, gets you wavenumbers up to the Nyquist frequency, 0.5/1 fs^-1 = 16,678 cm^-1.
+#Printing every 2 fs only gets you wavenumbers up to 0.5/2 fs^-1 = 8,339 cm^-1, and so on.
+#This indicates that you only need to print every 5 ns to have the IR spectra up to 3340 cm^-1, but I'd sample a bit more frequently since I'm an engineer and I prefer safety margins (no matter what the Nyquist-Shannon sampling theorem says).
+
+#production
+run                2000000
+#Note that running for 1,000,000 times the printout frequency, as I do here, gets you wavenumbers at 1,000,000 increments between 0 and the maximum wavenumber.
+#If you only use the autocorrelation function up to 0.01 times the trajectory length for statistical purposes, then you only get 10,000 increments.
+#e.g., you get the intensity calculated at every 16,678/9,999 = 1.668 cm^-1.
+#Running for longer increases this precision, and also it betters the statistics of the spectra.
