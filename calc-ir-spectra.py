@@ -65,7 +65,7 @@ lineshape_frequencies_wn = lineshape_frequencies / (100.*lightspeed) # converts 
 # Calculate spectra
 field_description =  lineshape_frequencies * (1. - np.exp(-reduced_planck*lineshape_frequencies/(boltz*T)))
 quantum_correction = lineshape_frequencies / (1. - np.exp(-reduced_planck*lineshape_frequencies/(boltz*T)))
-                     # quantum correction per doi.org/10.1021/jp034788u. Other options are possible, see doi.org/10.1063/1.441739.
+                     # quantum correction per doi.org/10.1021/jp034788u. Other options are possible, see doi.org/10.1063/1.441739 and doi.org/10.1080/00268978500102801.
 spectra = lineshape * field_description
 spectra_qm = spectra * quantum_correction
 

@@ -8,7 +8,7 @@ multiplying the lineshape by an electromagnetic field dependent prefactor.
 in.infrared:
 Here, I give the LAMMPS calculation that's needed to output the file
 dipole.txt, which is the instantaneous value of the dipole moment. This
-calculation is given under the comment, '#calculate dipole moment vector'.  The
+calculation is given under the comment, '#calculate dipole moment vector'. The
 calculation will work as long as your atoms have charge and the net charge of
 the system is 0. One thing to consider changing is the '2' in the 'fix
 printdipole...' line, which is how often the dipole moment is printed. At the
@@ -42,10 +42,11 @@ free) MOF-5 exhibit exceptionally weak intensities and are thus not visible in
 our spectra (Fig. 2a), but this matches reported MOF-5 FT-IR data."
 
 As for whether you want to look at the spectra without or with the quantum
-correction, that's up to you. See doi.org/10.1021/jp034788u and
-doi.org/10.1063/1.441739 for descriptions of this. If you are comparing to an
-experimental spectra, you might want to use it, though it's inexact and further
-corrections could be made, such as a shift of the frequencies.
+correction, that's up to you. See doi.org/10.1021/jp034788u,
+doi.org/10.1063/1.441739, and doi.org/10.1080/00268978500102801 for
+descriptions of this. If you are comparing to an experimental spectra, you
+probably want to use it, though several equally-arbitrary choices of quantum
+corrections exist. I used the one recommended by doi.org/10.1021/jp034788u.
 
 A very incomplete list of some good literature on calculating IR spectra:
 doi.org/10.1063/1.441739
