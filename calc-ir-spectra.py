@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import fftpack
+from scipy import signal
 
 # Inputs
 autocorrelation_option = 1 # 1 to calculate it, 2 to load a pre-calculated one
@@ -24,20 +25,46 @@ reduced_planck = 1.05457180013E-34 # kg m^2 s^-1
 if autocorrelation_option == 1:
     # Load data
     time, dipole_x, dipole_y, dipole_z = np.loadtxt(input_dipole_file, skiprows=2, usecols=(1,2,3,4), unpack=True)
-    autocorr=np.zeros(int(len(time) * fraction_autocorrelation_function_to_fft))
-    
+
     # Do calculation
-    print("Calculating autocorrelation function. Will need to go up to: " + str(len(autocorr)))
-    for i in range(len(autocorr)):
-        total=0.
-        count=0.
-    
-        for j in range(len(time)-i):
-            total += dipole_x[j]*dipole_x[j+i] + dipole_y[j]*dipole_y[j+i] + dipole_z[j]*dipole_z[j+i]
-            count += 1.
-    
-        autocorr[i] = total/count
-        print("Finished with autocorrelation calculation up to: " + str(i))
+    # Note that this method of calculating an autocorrelation function is very fast, but it can be difficult to follow.
+    # For readability, I've presented a more straightforward (but much, much slower) method in the commented block below.
+    print("Calculating autocorrelation function.")
+    # Shift the array
+    if len(time) % 2 == 0:
+        dipole_x_shifted = np.zeros(len(time)*2)
+        dipole_y_shifted = np.zeros(len(time)*2)
+        dipole_z_shifted = np.zeros(len(time)*2)
+    else:
+        dipole_x_shifted = np.zeros(len(time)*2-1)
+        dipole_y_shifted = np.zeros(len(time)*2-1)
+        dipole_z_shifted = np.zeros(len(time)*2-1)
+    dipole_x_shifted[len(time)//2:len(time)//2+len(time)] = dipole_x
+    dipole_y_shifted[len(time)//2:len(time)//2+len(time)] = dipole_y
+    dipole_z_shifted[len(time)//2:len(time)//2+len(time)] = dipole_z
+    # Convolute the shifted array with the flipped array, which is equivalent to performing a correlation
+    autocorr_x_full = (signal.fftconvolve(dipole_x_shifted,dipole_x[::-1], mode='same')[(-len(time)):]
+                       / np.arange(len(time), 0, -1))
+    autocorr_y_full = (signal.fftconvolve(dipole_y_shifted,dipole_y[::-1], mode='same')[(-len(time)):]
+                       / np.arange(len(time), 0, -1))
+    autocorr_z_full = (signal.fftconvolve(dipole_z_shifted,dipole_z[::-1], mode='same')[(-len(time)):]
+                       / np.arange(len(time), 0, -1))
+    autocorr_full = autocorr_x_full + autocorr_y_full + autocorr_z_full
+    # Truncate the autocorrelation array
+    autocorr = autocorr_full[:int(len(time) * fraction_autocorrelation_function_to_fft)]
+    print("Finished with autocorrelation function calculation.")
+
+#    # More straightforward (but much, much slower) method of doing the calculation
+#    autocorr=np.zeros(int(len(time) * fraction_autocorrelation_function_to_fft))
+#    print("Calculating autocorrelation function. Will need to go up to: " + str(len(autocorr)))
+#    for i in range(len(autocorr)):
+#        total=0.
+#        count=0.
+#        for j in range(len(time)-i):
+#            total += dipole_x[j]*dipole_x[j+i] + dipole_y[j]*dipole_y[j+i] + dipole_z[j]*dipole_z[j+i]
+#            count += 1.
+#        autocorr[i] = total/count
+#        print("Finished with autocorrelation function calculation up to: " + str(i))
     
     # Save data
     np.savetxt(output_autocorrelation_file, np.column_stack((time[:len(autocorr)], autocorr)),
