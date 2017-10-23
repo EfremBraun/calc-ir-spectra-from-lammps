@@ -77,7 +77,13 @@ variable           mytime equal step*dt
 fix                printdipole all ave/time 1 1 2 v_mytime v_totaldipolex v_totaldipoley v_totaldipolez file dipole.txt mode scalar format %.10f
 #Note that printing every 1 fs, as I do here, gets you wavenumbers up to the Nyquist frequency, 0.5/1 fs^-1 = 16,678 cm^-1.
 #Printing every 2 fs only gets you wavenumbers up to 0.5/2 fs^-1 = 8,339 cm^-1, and so on.
-#This indicates that you only need to print every 5 ns to have the IR spectra up to 3340 cm^-1, but I'd sample a bit more frequently since I'm an engineer and I prefer safety margins (no matter what the Nyquist-Shannon sampling theorem says).
+#This indicates that you only need to print every 5 ns to have the IR spectra up to 3340 cm^-1, but this is incorrect. 
+#Per the Nyquist-Shannon sampling theorem, you need to sample the system at a frequency greater than or equal to 2*f, where f is the highest frequency contained in the system.
+#Otherwise, aliasing errors occur, and the FFT will show the higher frequency signals at a lower frequency than they are.
+#Thus, if the highest-frequency bond in your system has a characteristic period of 20 fs, you need to print out at least every 10 fs.
+#If you want to get around this, you'll need to apply a lowpass filter (aka an anti-aliasing filter) to get rid of the high frequency signals before you do the FFT. This is not implemented in this code.
+#It makes more sense to print out frequently enough rather than to apply a filter; if you're doing MD, your timestep must be high enough to account for the high-frequency signal anyway, so the information is there!
+#The only good reason for a filter in this case is if you want to sample a very long trajectory and storing it is computationally prohibitive.
 
 #production
 run                2000000
