@@ -9,7 +9,7 @@ MD = np.genfromtxt('../2-python/IR-data.txt', usecols=(0,5))
 norm_exp = exp[:,1].max() - exp[:,1].min()
 norm_MD  = MD[:,1].max()  - MD[:,1].min()
 
-# Plot time vs. COM velocity to see linear momentum drift
+# Plot
 fig=plt.figure(figsize=[8.0,6.0])
 plt.plot(MD[:,0] ,  ((MD[:,1]  - MD[:,1].min() ) / norm_MD))
 plt.plot(exp[:,0], -((exp[:,1] - exp[:,1].min()) / norm_exp))
